@@ -39,9 +39,29 @@ MEAN = np.array([0.485, 0.456, 0.406])
 STD = np.array([0.229, 0.224, 0.225])
 
 
-mask_generator = MaskGenerator(512, 512, 3, rand_seed=None)
+def plot_sample_data(masked, mask, ori, middle_title='Raw Mask', name=""):
+    _, axes = plt.subplots(1, 3, figsize=(20, 5))
+    axes[0].imshow(masked[:,:,:])
+    axes[0].set_title('Masked Input')
+    axes[1].imshow(mask[:,:,:])
+    axes[1].set_title(middle_title)
+    axes[2].imshow(ori[:,:,:])
+    axes[2].set_title('Target Output')
+    plt.savefig(f"./{name}.jpg")
+    
+
+mask_generator = MaskGenerator(512, 512, 3, rand_seed=42)
 # Load image
 img = np.array(Image.open('./data/train/1.jpg').resize((512, 512))) / 255
+
+# Load mask
+mask = mask_generator.sample()
+
+# Image + mask
+masked_img = copy.deepcopy(img)
+masked_img[mask==0] = 1
+
+plot_sample_data(masked_img, mask * 255, img)
 
 
 class DataGenerator(ImageDataGenerator):
@@ -89,7 +109,7 @@ model.fit_generator(
     epochs=10,
     callbacks=[
         TensorBoard(
-            log_dir='./data/logs/single_image_test',
+            log_dir='./data/logs/single_image_test_checkpoints',
             write_graph=False
         ),
         ModelCheckpoint(
@@ -98,6 +118,20 @@ model.fit_generator(
             save_best_only=True, 
             save_weights_only=True
         ),
+        LambdaCallback(
+            on_epoch_end=lambda epoch, logs: plot_sample_data(
+                masked_img, 
+                model.predict(
+                    [
+                        np.expand_dims(masked_img,0), 
+                        np.expand_dims(mask,0)
+                    ]
+                )[0]
+                , 
+                img,
+                middle_title='Prediction',
+                name=epoch
+            )
+        )
     ],
 )
-
