@@ -28,7 +28,6 @@ import matplotlib.pyplot as plt
 
 # os.chdir('..')
 sys.path.append(os.getcwd())
-print(sys.path)
 from libs.util import MaskGenerator
 from libs.pconv_model import PConvUnet
 
@@ -40,7 +39,7 @@ MEAN = np.array([0.485, 0.456, 0.406])
 STD = np.array([0.229, 0.224, 0.225])
 
 
-mask_generator = MaskGenerator(512, 512, 3, rand_seed=42)
+mask_generator = MaskGenerator(512, 512, 3, rand_seed=None)
 # Load image
 img = np.array(Image.open('./data/train/1.jpg').resize((512, 512))) / 255
 
@@ -65,21 +64,28 @@ class DataGenerator(ImageDataGenerator):
 
 # Create datagen
 datagen = DataGenerator(  
-    rotation_range=20,
-    width_shift_range=0.2,
-    height_shift_range=0.2,
-    horizontal_flip=True
+    # rotation_range=20,
+    # width_shift_range=0.2,
+    # height_shift_range=0.2,
+    # horizontal_flip=True
 )
 
 # Create generator from numpy array
 batch = np.stack([img for _ in range(BATCH_SIZE)], axis=0)
+
 generator = datagen.flow(x=batch, batch_size=BATCH_SIZE)
+
+# for [masked, mask], ori in generator:
+#     images = np.hstack([masked[0], mask[0], ori[0]])
+#     plt.imshow(images)
+#     plt.show()
+#     break
 
 model = PConvUnet(vgg_weights='./data/logs/pytorch_to_keras_vgg16.h5')
 
 model.fit_generator(
     generator,
-    steps_per_epoch=2000,
+    steps_per_epoch=2,
     epochs=10,
     callbacks=[
         TensorBoard(
