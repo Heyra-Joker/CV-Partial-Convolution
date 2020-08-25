@@ -42,7 +42,7 @@ STD = np.array([0.229, 0.224, 0.225])
 
 mask_generator = MaskGenerator(512, 512, 3, rand_seed=42)
 # Load image
-img = np.array(Image.open('/Users/yanxiya/hw/cv/PConv-Keras-master/data/train/1.jpg').resize((512, 512))) / 255
+img = np.array(Image.open('./data/train/1.jpg').resize((512, 512))) / 255
 
 
 class DataGenerator(ImageDataGenerator):
