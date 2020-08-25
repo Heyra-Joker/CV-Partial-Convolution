@@ -105,7 +105,7 @@ model = PConvUnet(vgg_weights='./data/logs/pytorch_to_keras_vgg16.h5')
 
 model.fit_generator(
     generator,
-    steps_per_epoch=2,
+    steps_per_epoch=2000,
     epochs=10,
     callbacks=[
         TensorBoard(
